@@ -69,10 +69,8 @@ CMD ["apache2-foreground"]
 ```php
 <?php
 // Konfigurasi Database
-// Ganti dengan endpoint RDS Anda dari AWS Console
-
-define('DB_HOST_READ',  'rds-replica-endpoint');   // GANTI dengan endpoint RDS Read Replica
-define('DB_HOST_WRITE', 'rds-primary-endpoint');   // GANTI dengan endpoint RDS Primary
+define('DB_HOST_READ', 'rds-replica-endpoint');   // GANTI dengan endpoint RDS Read Replica
+define('DB_HOST_WRITE', 'rds-primary-endpoint');  // GANTI dengan endpoint RDS Primary
 define('DB_USER', 'admin');
 define('DB_PASS', 'HotelAdmin2026!');
 define('DB_NAME', 'grand_andhika_hotel');
@@ -86,15 +84,9 @@ define('DB_NAME', 'grand_andhika_hotel');
 ```php
 <?php
 session_start();
+require_once 'config.php';
 
-// Database configuration - READ REPLICA (public view)
-define('DB_HOST_READ',  'rds-replica-endpoint');  // GANTI dengan endpoint RDS Read Replica
-define('DB_HOST_WRITE', 'rds-primary-endpoint'); // GANTI dengan endpoint RDS Primary
-define('DB_USER', 'admin');
-define('DB_PASS', 'HotelAdmin2026!');
-define('DB_NAME', 'grand_andhika_hotel');
-
-$hotel_name    = "Grand Andhika Hotel";
+$hotel_name = "Grand Andhika Hotel";
 $hotel_address = "Jl. Gatot Subroto No. 88, Medan, Sumatera Utara";
 ?>
 <!DOCTYPE html>
@@ -102,119 +94,255 @@ $hotel_address = "Jl. Gatot Subroto No. 88, Medan, Sumatera Utara";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grand Andhika Hotel - Guest Book</title>
+    <title><?= $hotel_name ?> - Buku Tamu Digital</title>
+    <!-- Bootstrap 5 + Icons + Google Font -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecf2 100%);
+            min-height: 100vh;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .hero-card {
+            border: none;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 6px 12px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
+        }
+        .hero-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 50px rgba(0,0,0,0.12);
+        }
+        .section-title {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            position: relative;
+            display: inline-block;
+        }
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 4px;
+        }
+        .btn-gradient {
+            background: linear-gradient(145deg, #2563eb, #4f46e5);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 40px;
+            box-shadow: 0 8px 16px rgba(37,99,235,0.2);
+            transition: all 0.2s;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(145deg, #1d4ed8, #4338ca);
+            box-shadow: 0 12px 20px rgba(37,99,235,0.3);
+            color: white;
+        }
+        .table-custom {
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .table-custom thead {
+            background: #1e293b;
+            color: white;
+        }
+        .table-custom th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            padding: 16px;
+        }
+        .table-custom td {
+            padding: 14px 16px;
+            vertical-align: middle;
+        }
+        .badge-hotel {
+            background: linear-gradient(145deg, #f59e0b, #f97316);
+            color: white;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 40px;
+        }
+        .footer-note {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .input-group-text {
+            background: white;
+            border-right: none;
+        }
+        .form-control, .form-select {
+            border-left: none;
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
+        .form-control:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="#"><i class="bi bi-building"></i> <?= $hotel_name ?></a>
-            <div class="navbar-nav ms-auto">
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a class="nav-link" href="admin.php"><i class="bi bi-speedometer2"></i> Admin Panel</a>
-                    <a class="nav-link" href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a>
-                <?php else: ?>
-                    <a class="nav-link" href="login.php"><i class="bi bi-box-arrow-in-right"></i> Login</a>
-                <?php endif; ?>
+
+<!-- Navbar Elegan -->
+<nav class="navbar navbar-expand-lg sticky-top" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+    <div class="container py-2">
+        <a class="navbar-brand" href="#">
+            <i class="bi bi-building fs-3 me-2" style="color: #2563eb;"></i>
+            <span style="color: #0f172a;">Grand Andhika</span>
+            <span style="color: #2563eb; font-weight: 300;">Hotel</span>
+        </a>
+        <div class="navbar-nav ms-auto">
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <a class="nav-link me-3" href="admin.php"><i class="bi bi-speedometer2 me-1"></i> Dashboard</a>
+                <a class="nav-link" href="logout.php"><i class="bi bi-box-arrow-right me-1"></i> Keluar</a>
+            <?php else: ?>
+                <a class="nav-link btn btn-outline-primary rounded-pill px-4" href="login.php">
+                    <i class="bi bi-shield-lock me-1"></i> Login Admin
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container py-5">
+    <!-- Header dengan Alamat -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto text-center">
+            <span class="badge-hotel mb-3"><i class="bi bi-star-fill me-1"></i> Bintang 5 · Hospitality Excellence</span>
+            <h1 class="display-5 fw-bold" style="color: #0f172a;"><?= $hotel_name ?></h1>
+            <p class="lead text-secondary"><i class="bi bi-geo-alt-fill me-1" style="color: #dc2626;"></i> <?= $hotel_address ?></p>
+        </div>
+    </div>
+
+    <div class="row g-5">
+        <!-- Kolom Kiri: Form Tambah Tamu -->
+        <div class="col-lg-5">
+            <div class="hero-card p-4 p-xl-5">
+                <h4 class="section-title"><i class="bi bi-pencil-square me-2"></i>Tulis Kesan Anda</h4>
+                <p class="text-muted mb-4">Isi data diri dan pengalaman menginap Anda.</p>
+                
+                <form method="POST" action="add_guest.php">
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Nama Lengkap</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-4"><i class="bi bi-person"></i></span>
+                            <input type="text" name="nama_tamu" class="form-control border-start-0 rounded-end-4" placeholder="Contoh: Budi Santoso" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Nomor Telepon</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-4"><i class="bi bi-telephone"></i></span>
+                            <input type="text" name="no_telp" class="form-control border-start-0 rounded-end-4" placeholder="0812-3456-7890" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-semibold">Nomor Kamar</label>
+                            <input type="text" name="no_kamar" class="form-control rounded-4" placeholder="101" required>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-semibold">Lama Inap (malam)</label>
+                            <input type="number" name="lama_inap" class="form-control rounded-4" min="1" value="1" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Komentar / Kesan</label>
+                        <textarea name="komentar" class="form-control rounded-4" rows="4" placeholder="Ceritakan pengalaman menginap Anda..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-gradient w-100 py-3">
+                        <i class="bi bi-send-fill me-2"></i>Kirim Kesan
+                    </button>
+                </form>
             </div>
         </div>
-    </nav>
 
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-8 mx-auto">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="mb-0"><i class="bi bi-book"></i> Buku Tamu - <?= $hotel_name ?></h3>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted"><i class="bi bi-geo-alt"></i> <?= $hotel_address ?></p>
-
-                        <!-- Form Tambah Tamu (Publik) -->
-                        <h5>Tambah Data Tamu</h5>
-                        <form method="POST" action="add_guest.php" class="mb-4">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label>Nama Tamu *</label>
-                                    <input type="text" name="nama_tamu" class="form-control" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label>No. Telepon *</label>
-                                    <input type="text" name="no_telp" class="form-control" required>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label>Nomor Kamar *</label>
-                                    <input type="text" name="no_kamar" class="form-control" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label>Lama Menginap (malam) *</label>
-                                    <input type="number" name="lama_inap" class="form-control" min="1" required>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label>Komentar / Kesan</label>
-                                <textarea name="komentar" class="form-control" rows="3"></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-check-circle"></i> Simpan Data Tamu
-                            </button>
-                        </form>
-
-                        <!-- Daftar Tamu (Read from Replica) -->
-                        <h5>Daftar Tamu Terkini</h5>
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Nama</th>
-                                        <th>Kamar</th>
-                                        <th>Inap</th>
-                                        <th>Check-in</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    try {
-                                        $conn_read = new mysqli(DB_HOST_READ, DB_USER, DB_PASS, DB_NAME);
-                                        if ($conn_read->connect_error) {
-                                            echo "<tr><td colspan='4' class='text-danger'>Error koneksi database</td></tr>";
-                                        } else {
-                                            $result = $conn_read->query(
-                                                "SELECT nama_tamu, no_kamar, lama_inap, created_at FROM guests ORDER BY created_at DESC LIMIT 10"
-                                            );
-                                            if ($result && $result->num_rows > 0) {
-                                                while ($row = $result->fetch_assoc()) {
-                                                    echo "<tr>";
-                                                    echo "<td>" . htmlspecialchars($row['nama_tamu'])  . "</td>";
-                                                    echo "<td>" . htmlspecialchars($row['no_kamar'])   . "</td>";
-                                                    echo "<td>" . htmlspecialchars($row['lama_inap'])  . " malam</td>";
-                                                    echo "<td>" . htmlspecialchars($row['created_at']) . "</td>";
-                                                    echo "</tr>";
-                                                }
-                                            } else {
-                                                echo "<tr><td colspan='4'>Belum ada data tamu</td></tr>";
-                                            }
+        <!-- Kolom Kanan: Daftar Tamu Terkini -->
+        <div class="col-lg-7">
+            <div class="hero-card p-4 p-xl-5">
+                <div class="d-flex align-items-center mb-4">
+                    <h4 class="section-title mb-0"><i class="bi bi-people-fill me-2"></i>Tamu Terkini</h4>
+                    <span class="ms-auto badge bg-light text-dark rounded-pill px-3 py-2">
+                        <i class="bi bi-database me-1"></i> Read Replica
+                    </span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-custom align-middle">
+                        <thead>
+                            <tr>
+                                <th>Nama Tamu</th>
+                                <th>Kamar</th>
+                                <th>Inap</th>
+                                <th>Check-in</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            try {
+                                $conn_read = new mysqli(DB_HOST_READ, DB_USER, DB_PASS, DB_NAME);
+                                if ($conn_read->connect_error) {
+                                    echo '<tr><td colspan="4" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-2"></i>Gagal terhubung ke database</td></tr>';
+                                } else {
+                                    $result = $conn_read->query("SELECT nama_tamu, no_kamar, lama_inap, created_at FROM guests ORDER BY created_at DESC LIMIT 8");
+                                    if ($result && $result->num_rows > 0) {
+                                        while($row = $result->fetch_assoc()) {
+                                            echo '<tr>';
+                                            echo '<td><i class="bi bi-person-circle me-2 text-primary"></i>' . htmlspecialchars($row['nama_tamu']) . '</td>';
+                                            echo '<td><span class="badge bg-light text-dark rounded-pill px-3 py-2">' . htmlspecialchars($row['no_kamar']) . '</span></td>';
+                                            echo '<td>' . htmlspecialchars($row['lama_inap']) . ' malam</td>';
+                                            echo '<td><i class="bi bi-calendar3 me-1 text-secondary"></i>' . date('d M Y', strtotime($row['created_at'])) . '</td>';
+                                            echo '</tr>';
                                         }
-                                    } catch (Exception $e) {
-                                        echo "<tr><td colspan='4' class='text-danger'>Error: Database belum dikonfigurasi</td></tr>";
+                                    } else {
+                                        echo '<tr><td colspan="4" class="text-center py-4 text-muted"><i class="bi bi-journal-x me-2"></i>Belum ada tamu yang mengisi buku tamu</td></tr>';
                                     }
-                                    ?>
-                                </tbody>
-                            </table>
-                        </div>
-                        <small class="text-muted">
-                            <i class="bi bi-info-circle"></i> Data dibaca dari database replica (read-only)
-                        </small>
-                    </div>
+                                    $conn_read->close();
+                                }
+                            } catch (Exception $e) {
+                                echo '<tr><td colspan="4" class="text-center text-danger py-4">Error: ' . htmlspecialchars($e->getMessage()) . '</td></tr>';
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="footer-note mt-3 d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill me-2" style="color: #3b82f6;"></i>
+                    Data ditampilkan dari database replica (read-only) untuk performa optimal.
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Footer -->
+<footer class="container text-center py-4">
+    <p class="footer-note mb-0">© 2026 Grand Andhika Hotel — Dibangun dengan <i class="bi bi-heart-fill text-danger"></i> untuk keramahan terbaik</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 ```
@@ -234,28 +362,33 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once 'config.php';
-
+    
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
-
+    
     $conn = new mysqli(DB_HOST_WRITE, DB_USER, DB_PASS, DB_NAME);
-
-    $stmt = $conn->prepare("SELECT id, username, password FROM admin_users WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($row = $result->fetch_assoc()) {
-        if (password_verify($password, $row['password'])) {
-            $_SESSION['user_id']  = $row['id'];
-            $_SESSION['username'] = $row['username'];
-            header('Location: admin.php');
-            exit;
+    
+    if (!$conn->connect_error) {
+        $stmt = $conn->prepare("SELECT id, username, password FROM admin_users WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($row = $result->fetch_assoc()) {
+            if (password_verify($password, $row['password'])) {
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['username'] = $row['username'];
+                header('Location: admin.php');
+                exit;
+            } else {
+                $error = 'Password tidak cocok!';
+            }
         } else {
-            $error = 'Password salah!';
+            $error = 'Username tidak ditemukan!';
         }
+        $conn->close();
     } else {
-        $error = 'Username tidak ditemukan!';
+        $error = 'Gagal terhubung ke database.';
     }
 }
 ?>
@@ -264,39 +397,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin - Grand Andhika Hotel</title>
+    <title>Login Admin · Grand Andhika Hotel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 10% 30%, #e0e7ff, #f3f4f6);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 20px;
+        }
+        .login-card {
+            border: none;
+            border-radius: 32px;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 420px;
+            width: 100%;
+            margin: auto;
+        }
+        .login-header {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            padding: 2rem 2rem 1.5rem;
+            text-align: center;
+        }
+        .login-body {
+            padding: 2.5rem 2rem;
+        }
+        .form-control {
+            border-radius: 16px;
+            padding: 14px 18px;
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+        .btn-login {
+            background: linear-gradient(145deg, #2563eb, #4f46e5);
+            border: none;
+            border-radius: 40px;
+            padding: 14px;
+            font-weight: 700;
+            color: white;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 8px 16px rgba(37,99,235,0.2);
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 24px rgba(37,99,235,0.3);
+        }
+        .error-toast {
+            background: #fee2e2;
+            color: #b91c1c;
+            border-radius: 40px;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-4 mx-auto">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Login Admin</h4>
-                    </div>
-                    <div class="card-body">
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger"><?= $error ?></div>
-                        <?php endif; ?>
-                        <form method="POST">
-                            <div class="mb-3">
-                                <label>Username</label>
-                                <input type="text" name="username" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label>Password</label>
-                                <input type="password" name="password" class="form-control" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Login</button>
-                        </form>
-                        <hr>
-                        <small class="text-muted">Default: admin / admin123</small>
-                    </div>
+<body>
+
+<div class="login-card">
+    <div class="login-header">
+        <i class="bi bi-building fs-1 text-white mb-2"></i>
+        <h2 class="text-white fw-bold">Grand Andhika</h2>
+        <p class="text-white-50 mb-0">Panel Administrasi</p>
+    </div>
+    <div class="login-body">
+        <?php if ($error): ?>
+            <div class="error-toast d-flex align-items-center mb-4">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= htmlspecialchars($error) ?>
+            </div>
+        <?php endif; ?>
+        <form method="POST">
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-person"></i></span>
+                    <input type="text" name="username" class="form-control border-start-0" placeholder="admin" required autofocus>
                 </div>
             </div>
-        </div>
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" class="form-control border-start-0" placeholder="········" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-login">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Masuk Dashboard
+            </button>
+        </form>
+        <p class="text-muted text-center small mt-4 mb-0">
+            <i class="bi bi-shield-shaded"></i> Akses terbatas hanya untuk staf hotel
+        </p>
     </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 ```
@@ -312,35 +518,30 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
-
 require_once 'config.php';
 
 $message = '';
 
+// Proses Tambah / Edit
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn_write = new mysqli(DB_HOST_WRITE, DB_USER, DB_PASS, DB_NAME);
-
-    if (isset($_POST['add'])) {
-        $stmt = $conn_write->prepare(
-            "INSERT INTO guests (nama_tamu, no_telp, no_kamar, lama_inap, komentar) VALUES (?, ?, ?, ?, ?)"
-        );
-        $stmt->bind_param("sssis", $_POST['nama_tamu'], $_POST['no_telp'], $_POST['no_kamar'], $_POST['lama_inap'], $_POST['komentar']);
-        $stmt->execute();
-        $message = 'Data tamu berhasil ditambahkan!';
+    if (!$conn_write->connect_error) {
+        if (isset($_POST['add'])) {
+            $stmt = $conn_write->prepare("INSERT INTO guests (nama_tamu, no_telp, no_kamar, lama_inap, komentar) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssis", $_POST['nama_tamu'], $_POST['no_telp'], $_POST['no_kamar'], $_POST['lama_inap'], $_POST['komentar']);
+            $stmt->execute();
+            $message = 'Data tamu berhasil ditambahkan.';
+        } elseif (isset($_POST['edit'])) {
+            $stmt = $conn_write->prepare("UPDATE guests SET nama_tamu=?, no_telp=?, no_kamar=?, lama_inap=?, komentar=? WHERE id=?");
+            $stmt->bind_param("sssisi", $_POST['nama_tamu'], $_POST['no_telp'], $_POST['no_kamar'], $_POST['lama_inap'], $_POST['komentar'], $_POST['id']);
+            $stmt->execute();
+            $message = 'Data berhasil diperbarui.';
+        }
+        $conn_write->close();
     }
-
-    if (isset($_POST['edit'])) {
-        $stmt = $conn_write->prepare(
-            "UPDATE guests SET nama_tamu=?, no_telp=?, no_kamar=?, lama_inap=?, komentar=? WHERE id=?"
-        );
-        $stmt->bind_param("sssisi", $_POST['nama_tamu'], $_POST['no_telp'], $_POST['no_kamar'], $_POST['lama_inap'], $_POST['komentar'], $_POST['id']);
-        $stmt->execute();
-        $message = 'Data tamu berhasil diupdate!';
-    }
-
-    $conn_write->close();
 }
 
+// Proses Hapus
 if (isset($_GET['delete'])) {
     $conn_write = new mysqli(DB_HOST_WRITE, DB_USER, DB_PASS, DB_NAME);
     $stmt = $conn_write->prepare("DELETE FROM guests WHERE id = ?");
@@ -350,127 +551,187 @@ if (isset($_GET['delete'])) {
     header('Location: admin.php?msg=deleted');
     exit;
 }
+
+// Ambil semua data untuk ditampilkan
+$conn_write = new mysqli(DB_HOST_WRITE, DB_USER, DB_PASS, DB_NAME);
+$result = $conn_write->query("SELECT * FROM guests ORDER BY created_at DESC");
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Grand Andhika Hotel</title>
+    <title>Admin · Grand Andhika Hotel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .navbar-admin { background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.02); padding: 1rem 0; }
+        .card-modern { border: none; border-radius: 24px; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+        .table-admin thead { background: #1e293b; color: white; }
+        .btn-gradient { background: linear-gradient(145deg, #2563eb, #4f46e5); border: none; color: white; border-radius: 40px; padding: 8px 20px; }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="index.php"><i class="bi bi-building"></i> Grand Andhika Hotel</a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3">Welcome, <?= htmlspecialchars($_SESSION['username']) ?></span>
-                <a class="nav-link" href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a>
-            </div>
+
+<!-- Navbar -->
+<nav class="navbar-admin">
+    <div class="container d-flex align-items-center">
+        <a class="navbar-brand d-flex align-items-center" href="index.php">
+            <i class="bi bi-building fs-3 me-2" style="color: #2563eb;"></i>
+            <span class="fw-bold">Grand Andhika</span> <span class="text-muted ms-2">Admin</span>
+        </a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="me-3 text-secondary"><i class="bi bi-person-check"></i> <?= htmlspecialchars($_SESSION['username']) ?></span>
+            <a href="logout.php" class="btn btn-outline-secondary rounded-pill"><i class="bi bi-box-arrow-right"></i></a>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <div class="container mt-4">
-        <?php if ($message): ?>
-            <div class="alert alert-success alert-dismissible fade show">
-                <?= $message ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
+<div class="container py-4">
+    <?php if ($message): ?>
+        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><?= $message ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php elseif (isset($_GET['msg'])): ?>
+        <div class="alert alert-info alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i>Data berhasil dihapus.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
-        <?php if (isset($_GET['msg'])): ?>
-            <div class="alert alert-info alert-dismissible fade show">
-                Data berhasil dihapus!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
+    <div class="card-modern p-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+            <h3 class="fw-bold mb-0"><i class="bi bi-journal-bookmark-fill me-2 text-primary"></i>Manajemen Buku Tamu</h3>
+            <button class="btn btn-gradient mt-2 mt-sm-0" data-bs-toggle="modal" data-bs-target="#addModal">
+                <i class="bi bi-plus-lg me-1"></i> Tambah Tamu Baru
+            </button>
+        </div>
 
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0"><i class="bi bi-database"></i> Manajemen Data Tamu (Write to Primary DB)</h4>
-            </div>
-            <div class="card-body">
-                <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addModal">
-                    <i class="bi bi-plus-circle"></i> Tambah Tamu
-                </button>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle table-admin">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama Tamu</th>
+                        <th>Kontak</th>
+                        <th>Kamar</th>
+                        <th>Inap</th>
+                        <th>Check-in</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while($row = $result->fetch_assoc()): ?>
+                    <tr>
+                        <td>#<?= $row['id'] ?></td>
+                        <td><i class="bi bi-person-badge me-2"></i><?= htmlspecialchars($row['nama_tamu']) ?></td>
+                        <td><?= htmlspecialchars($row['no_telp']) ?></td>
+                        <td><span class="badge bg-light text-dark"><?= htmlspecialchars($row['no_kamar']) ?></span></td>
+                        <td><?= $row['lama_inap'] ?> mlm</td>
+                        <td><?= date('d/m/Y', strtotime($row['created_at'])) ?></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editModal<?= $row['id'] ?>">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <a href="?delete=<?= $row['id'] ?>" class="btn btn-sm btn-outline-danger rounded-3" onclick="return confirm('Hapus data tamu ini?')">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </td>
+                    </tr>
 
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>ID</th><th>Nama</th><th>No. Telp</th>
-                                <th>Kamar</th><th>Inap</th><th>Check-in</th><th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $conn_write = new mysqli(DB_HOST_WRITE, DB_USER, DB_PASS, DB_NAME);
-                            $result = $conn_write->query("SELECT * FROM guests ORDER BY created_at DESC");
-                            while ($row = $result->fetch_assoc()):
-                            ?>
-                            <tr>
-                                <td><?= $row['id'] ?></td>
-                                <td><?= htmlspecialchars($row['nama_tamu']) ?></td>
-                                <td><?= htmlspecialchars($row['no_telp']) ?></td>
-                                <td><?= htmlspecialchars($row['no_kamar']) ?></td>
-                                <td><?= $row['lama_inap'] ?> malam</td>
-                                <td><?= $row['created_at'] ?></td>
-                                <td>
-                                    <button class="btn btn-sm btn-warning"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editModal<?= $row['id'] ?>">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <a href="?delete=<?= $row['id'] ?>"
-                                        class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Yakin hapus data ini?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
+                    <!-- Modal Edit -->
+                    <div class="modal fade" id="editModal<?= $row['id'] ?>" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content p-3">
+                                <form method="POST">
+                                    <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                    <div class="modal-header border-0">
+                                        <h5 class="modal-title fw-bold">Edit Data Tamu</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label>Nama</label>
+                                            <input type="text" name="nama_tamu" class="form-control" value="<?= htmlspecialchars($row['nama_tamu']) ?>" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>No. Telepon</label>
+                                            <input type="text" name="no_telp" class="form-control" value="<?= htmlspecialchars($row['no_telp']) ?>" required>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-6 mb-3">
+                                                <label>Kamar</label>
+                                                <input type="text" name="no_kamar" class="form-control" value="<?= htmlspecialchars($row['no_kamar']) ?>">
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label>Inap</label>
+                                                <input type="number" name="lama_inap" class="form-control" value="<?= $row['lama_inap'] ?>">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>Komentar</label>
+                                            <textarea name="komentar" class="form-control" rows="2"><?= htmlspecialchars($row['komentar']) ?></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-0">
+                                        <button type="submit" name="edit" class="btn btn-primary rounded-pill px-4">Simpan</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted small mt-3"><i class="bi bi-database-fill-check"></i> Data ditulis ke database PRIMARY.</p>
+    </div>
+</div>
+
+<!-- Modal Tambah -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
+            <form method="POST">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Tambah Tamu Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <small class="text-muted">
-                    <i class="bi bi-info-circle"></i> Data ditulis ke database PRIMARY (read-write)
-                </small>
-            </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Nama Lengkap</label>
+                        <input type="text" name="nama_tamu" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>No. Telepon</label>
+                        <input type="text" name="no_telp" class="form-control" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label>Nomor Kamar</label>
+                            <input type="text" name="no_kamar" class="form-control">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label>Lama Inap</label>
+                            <input type="number" name="lama_inap" class="form-control" value="1">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Komentar</label>
+                        <textarea name="komentar" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" name="add" class="btn btn-gradient rounded-pill px-5">Simpan</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- Add Modal -->
-    <div class="modal fade" id="addModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form method="POST">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Tambah Tamu Baru</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3"><label>Nama Tamu</label>
-                            <input type="text" name="nama_tamu" class="form-control" required></div>
-                        <div class="mb-3"><label>No. Telepon</label>
-                            <input type="text" name="no_telp" class="form-control" required></div>
-                        <div class="mb-3"><label>Nomor Kamar</label>
-                            <input type="text" name="no_kamar" class="form-control" required></div>
-                        <div class="mb-3"><label>Lama Menginap (malam)</label>
-                            <input type="number" name="lama_inap" class="form-control" min="1" required></div>
-                        <div class="mb-3"><label>Komentar</label>
-                            <textarea name="komentar" class="form-control" rows="3"></textarea></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" name="add" class="btn btn-primary">Simpan</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 ```
@@ -485,28 +746,26 @@ require_once 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn_write = new mysqli(DB_HOST_WRITE, DB_USER, DB_PASS, DB_NAME);
-
+    
     if ($conn_write->connect_error) {
         die("Koneksi gagal: " . $conn_write->connect_error);
     }
-
+    
     $nama_tamu = $_POST['nama_tamu'] ?? '';
-    $no_telp   = $_POST['no_telp']   ?? '';
-    $no_kamar  = $_POST['no_kamar']  ?? '';
+    $no_telp = $_POST['no_telp'] ?? '';
+    $no_kamar = $_POST['no_kamar'] ?? '';
     $lama_inap = $_POST['lama_inap'] ?? 1;
-    $komentar  = $_POST['komentar']  ?? '';
-
-    $stmt = $conn_write->prepare(
-        "INSERT INTO guests (nama_tamu, no_telp, no_kamar, lama_inap, komentar) VALUES (?, ?, ?, ?, ?)"
-    );
+    $komentar = $_POST['komentar'] ?? '';
+    
+    $stmt = $conn_write->prepare("INSERT INTO guests (nama_tamu, no_telp, no_kamar, lama_inap, komentar) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("sssis", $nama_tamu, $no_telp, $no_kamar, $lama_inap, $komentar);
-
+    
     if ($stmt->execute()) {
         header('Location: index.php?success=1');
     } else {
         echo "Error: " . $stmt->error;
     }
-
+    
     $stmt->close();
     $conn_write->close();
 } else {
@@ -546,39 +805,35 @@ echo json_encode(['status' => 'healthy', 'timestamp' => date('Y-m-d H:i:s')]);
 ### `app/src/db_init.sql`
 
 ```sql
--- ============================================
--- Grand Andhika Hotel - Database Initialization
--- Jalankan script ini di RDS Primary instance
--- ============================================
-
+-- Run this on RDS Primary
 CREATE DATABASE IF NOT EXISTS grand_andhika_hotel;
 USE grand_andhika_hotel;
 
 CREATE TABLE IF NOT EXISTS guests (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    nama_tamu  VARCHAR(100) NOT NULL,
-    no_telp    VARCHAR(20)  NOT NULL,
-    no_kamar   VARCHAR(10)  NOT NULL,
-    lama_inap  INT          NOT NULL DEFAULT 1,
-    komentar   TEXT,
-    created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nama_tamu VARCHAR(100) NOT NULL,
+    no_telp VARCHAR(20) NOT NULL,
+    no_kamar VARCHAR(10) NOT NULL,
+    lama_inap INT NOT NULL DEFAULT 1,
+    komentar TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS admin_users (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    username   VARCHAR(50)  UNIQUE NOT NULL,
-    password   VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Default admin (password: admin123)
-INSERT INTO admin_users (username, password) VALUES
+-- Insert default admin (password: admin123)
+INSERT INTO admin_users (username, password) VALUES 
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
--- Sample data
+-- Insert sample data
 INSERT INTO guests (nama_tamu, no_telp, no_kamar, lama_inap, komentar) VALUES
-('Budi Santoso',  '081234567890', '101', 3, 'Kamar bersih, pelayanan ramah'),
-('Siti Aminah',   '085678901234', '205', 2, 'Sarapan enak, lokasi strategis'),
+('Budi Santoso', '081234567890', '101', 3, 'Kamar bersih, pelayanan ramah'),
+('Siti Aminah', '085678901234', '205', 2, 'Sarapan enak, lokasi strategis'),
 ('Ahmad Hidayat', '081122334455', '310', 4, 'Kolam renang bersih, staf helpful');
 ```
 
