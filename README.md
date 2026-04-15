@@ -911,6 +911,7 @@ Internet
 Langkah 1: Buat Security Group untuk ALB
 Di konsol EC2, pada panel kiri pilih Security Groups di bawah menu Network & Security.
 Klik Create security group.
+
 Isi detail:
 Security group name: Contoh hotel-alb-sg
 Description: Contoh Security group for ALB
@@ -919,12 +920,14 @@ Di bagian Inbound rules, klik Add rule dan isi:
 Type: HTTP
 Source: 0.0.0.0/0 (Ini untuk mengizinkan akses HTTP dari internet ke ALB)
 Klik Create security group.
+
 🔗 Langkah 2: Pasangkan Security Group ke ALB
 Di konsol EC2, pada panel kiri pilih Load Balancers.
 Pilih ALB kamu (hotel-alb), lalu buka tab Security.
 Klik Edit.
 Hapus centang pada security group lama (jika ada), lalu centang security group baru yang sudah dibuat (hotel-alb-sg).
 Klik Save changes.
+
 ✏️ Langkah 3: Ubah Inbound Rule di Security Group EC2
 Kembali ke halaman Security Groups.
 Pilih security group untuk EC2 (hotel-web-sg).
