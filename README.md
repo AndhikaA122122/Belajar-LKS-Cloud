@@ -908,35 +908,37 @@ Internet
 |---|---|
 | MySQL/Aurora (3306) | `hotel-web-sg` |
 
-Langkah 1: Buat Security Group untuk ALB
-Di konsol EC2, pada panel kiri pilih Security Groups di bawah menu Network & Security.
-Klik Create security group.
+**Langkah 1: Buat Security Group untuk ALB**
 
-Isi detail:
-Security group name: Contoh hotel-alb-sg
-Description: Contoh Security group for ALB
-VPC: Pilih VPC yang sama, yaitu hotel-vpc
-Di bagian Inbound rules, klik Add rule dan isi:
-Type: HTTP
-Source: 0.0.0.0/0 (Ini untuk mengizinkan akses HTTP dari internet ke ALB)
-Klik Create security group.
+1. Di konsol EC2, pada panel kiri pilih **Security Groups** di bawah menu **Network & Security**
+2. Klik **Create security group**
+3. Isi detail:
+   - Security group name: `hotel-alb-sg`
+   - Description: `Security group for ALB`
+   - VPC: pilih `hotel-vpc`
+4. Di bagian **Inbound rules**, klik **Add rule** dan isi:
+   - Type: `HTTP`
+   - Source: `0.0.0.0/0` (mengizinkan akses HTTP dari internet ke ALB)
+5. Klik **Create security group**
 
-🔗 Langkah 2: Pasangkan Security Group ke ALB
-Di konsol EC2, pada panel kiri pilih Load Balancers.
-Pilih ALB kamu (hotel-alb), lalu buka tab Security.
-Klik Edit.
-Hapus centang pada security group lama (jika ada), lalu centang security group baru yang sudah dibuat (hotel-alb-sg).
-Klik Save changes.
+**🔗 Langkah 2: Pasangkan Security Group ke ALB**
 
-✏️ Langkah 3: Ubah Inbound Rule di Security Group EC2
-Kembali ke halaman Security Groups.
-Pilih security group untuk EC2 (hotel-web-sg).
-Buka tab Inbound rules, lalu klik Edit inbound rules.
-Cari aturan dengan tipe HTTP, lalu klik Delete untuk menghapus aturan dengan sumber 0.0.0.0/0.
-Klik Add rule untuk membuat aturan baru:
-Type: HTTP
-Source: Ketik hotel-alb-sg dan pilih security group ALB yang muncul.
-Klik Save rules.
+1. Di konsol EC2, pada panel kiri pilih **Load Balancers**
+2. Pilih ALB kamu (`hotel-alb`), lalu buka tab **Security**
+3. Klik **Edit**
+4. Hapus centang pada security group lama (jika ada), lalu centang `hotel-alb-sg`
+5. Klik **Save changes**
+
+**✏️ Langkah 3: Ubah Inbound Rule di Security Group EC2**
+
+1. Kembali ke halaman **Security Groups**
+2. Pilih security group untuk EC2 (`hotel-web-sg`)
+3. Buka tab **Inbound rules**, lalu klik **Edit inbound rules**
+4. Cari aturan dengan tipe HTTP, lalu klik **Delete** untuk menghapus aturan dengan sumber `0.0.0.0/0`
+5. Klik **Add rule** untuk membuat aturan baru:
+   - Type: `HTTP`
+   - Source: ketik `hotel-alb-sg` dan pilih security group ALB yang muncul
+6. Klik **Save rules**
 
 ---
 
@@ -1006,18 +1008,28 @@ Klik Save rules.
 ```bash
 #!/bin/bash
 apt-get update -y
+
 apt-get install -y ca-certificates curl
+
 install -m 0755 -d /etc/apt/keyrings
+
 curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+
 chmod a+r /etc/apt/keyrings/docker.asc
+
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
 https://download.docker.com/linux/debian \
 $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
 tee /etc/apt/sources.list.d/docker.list > /dev/null
+
 apt-get update -y
+
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
 systemctl start docker
+
 systemctl enable docker
+
 usermod -aG docker admin
 ```
 
@@ -1042,17 +1054,18 @@ usermod -aG docker admin
 | Timeout | `5` |
 | Interval | `10` |
 
-Langkah-langkah Aktifkan Sticky Session:
-Buka AWS Console → EC2 → Target Groups.
-Pilih target group hotel-tg.
-Tab Attributes → klik Edit.
-Pada bagian Stickiness:
-Aktifkan Stickiness.
-Stickiness type: pilih Load balancer generated cookie.
-Duration: biarkan default (1 day) atau sesuaikan.
-Klik Save changes.
+**Aktifkan Sticky Session:**
 
-2. **EC2 Console** → **Load Balancers** → **Create** → pilih **Application Load Balancer** 
+1. Buka **AWS Console** → **EC2** → **Target Groups**
+2. Pilih target group `hotel-tg`
+3. Tab **Attributes** → klik **Edit**
+4. Pada bagian **Stickiness**:
+   - Aktifkan **Stickiness**
+   - Stickiness type: pilih **Load balancer generated cookie**
+   - Duration: biarkan default (1 day) atau sesuaikan
+5. Klik **Save changes**
+
+2. **EC2 Console** → **Load Balancers** → **Create** → pilih **Application Load Balancer**
 
 3. Konfigurasi:
 
@@ -1062,7 +1075,7 @@ Klik Save changes.
 | Scheme | `Internet-facing` |
 | VPC | `hotel-vpc` |
 | Mappings | Pilih kedua public subnet |
-| Security group | `hotel-web-sg` |
+| Security group | `hotel-alb` |
 | Listener | `HTTP:80` |
 
 4. Register targets: pilih keempat EC2 (setelah siap) → **Create**
@@ -1079,22 +1092,30 @@ Klik Save changes.
 ssh -i C:\lomba-cloud-hotel\hotel-key.pem admin@<EC2-PUBLIC-IP>
 ```
 
-2. Di dalam EC2, install MySQL client dan connect ke RDS Primary:
+2. Di dalam EC2, install MySQL client:
 
 ```bash
 sudo apt-get update -y && sudo apt-get install -y default-mysql-client
-mysql -h <RDS-PRIMARY-ENDPOINT> -u admin -p
-# Masukkan password: HotelAdmin2026!
 ```
 
-3. Copy-paste isi file `db_init.sql` ke MySQL prompt, lalu verifikasi:
+3. Connect ke RDS Primary (masukkan password: `HotelAdmin2026!`):
+
+```bash
+mysql -h <RDS-PRIMARY-ENDPOINT> -u admin -p
+```
+
+4. Copy-paste isi file `db_init.sql` ke MySQL prompt, lalu verifikasi:
 
 ```sql
 USE grand_andhika_hotel;
+
 SELECT * FROM guests;
+
 SELECT * FROM admin_users;
+
 EXIT;
 ```
+
 ---
 
 ## Langkah 7: Upload Kode ke EC2 via SCP
@@ -1103,6 +1124,9 @@ Dari **PowerShell Windows**, lakukan untuk semua 4 EC2:
 
 ```powershell
 scp -i C:\lomba-cloud-hotel\hotel-key.pem -r C:\lomba-cloud-hotel\app\src admin@<EC2-IP>:~/
+```
+
+```powershell
 scp -i C:\lomba-cloud-hotel\hotel-key.pem C:\lomba-cloud-hotel\app\Dockerfile admin@<EC2-IP>:~/
 ```
 
@@ -1110,12 +1134,21 @@ scp -i C:\lomba-cloud-hotel\hotel-key.pem C:\lomba-cloud-hotel\app\Dockerfile ad
 
 ## Langkah 8: Update Konfigurasi Database di Kode
 
-SSH ke masing-masing EC2 dan edit file konfigurasi:
+SSH ke masing-masing EC2:
 
 ```bash
 ssh -i C:\lomba-cloud-hotel\hotel-key.pem admin@<EC2-IP>
+```
+
+```bash
 cd ~/src
+```
+
+```bash
 nano config.php
+```
+
+```bash
 nano index.php
 ```
 
@@ -1136,7 +1169,13 @@ Di **setiap EC2**, jalankan:
 
 ```bash
 cd ~
+```
+
+```bash
 sudo docker build -t hotel-guestbook .
+```
+
+```bash
 sudo docker run -d \
   --name guestbook-app \
   --restart unless-stopped \
@@ -1144,17 +1183,25 @@ sudo docker run -d \
   hotel-guestbook
 ```
 
-Verifikasi:
+Verifikasi container berjalan:
 
 ```bash
 sudo docker ps
-curl http://localhost/health.php
-# Diharapkan: {"status":"healthy","timestamp":"..."}
 ```
+
+```bash
+curl http://localhost/health.php
+```
+
+> Diharapkan output: `{"status":"healthy","timestamp":"..."}`
+
+Generate hash password admin baru:
 
 ```bash
 docker exec -it guestbook-app php -r "echo password_hash('admin123', PASSWORD_BCRYPT) . PHP_EOL;"
 ```
+
+Connect ke MySQL untuk update password:
 
 ```bash
 mysql -h hotel-primary.xxxxxx.ap-southeast-1.rds.amazonaws.com -u admin -p
@@ -1165,16 +1212,20 @@ USE grand_andhika_hotel;
 
 DELETE FROM admin_users WHERE username = 'admin';
 
-INSERT INTO admin_users (username, password) VALUES 
-('admin', 'HASH_DARI_LANGKAH_1');
+INSERT INTO admin_users (username, password) VALUES ('admin', 'HASH_DARI_LANGKAH_1');
 
 SELECT * FROM admin_users;
+
 EXIT;
 ```
 
+Buat user aplikasi (opsional):
+
 ```sql
 CREATE USER 'appuser'@'%' IDENTIFIED BY 'AppHotel2026!';
+
 GRANT ALL PRIVILEGES ON grand_andhika_hotel.* TO 'appuser'@'%';
+
 FLUSH PRIVILEGES;
 ```
 
@@ -1194,24 +1245,28 @@ FLUSH PRIVILEGES;
 ## Langkah 11: Testing Sistem
 
 **✅ Test Load Balancer**
+
 ```
 Buka browser → akses http://<ALB-DNS-NAME>
 Refresh beberapa kali → harus tetap tampil
 ```
 
 **✅ Test Write ke Primary**
+
 ```
 Di halaman utama → isi form tambah tamu → Submit
 Data harus tersimpan ke database
 ```
 
 **✅ Test Read dari Replica**
+
 ```
 Lihat tabel di halaman utama → data baru harus tampil
 (Ada delay replication lag ~1-2 detik, normal)
 ```
 
 **✅ Test Login Admin**
+
 ```
 Akses /login.php
 Username: admin | Password: admin123
@@ -1219,19 +1274,28 @@ Masuk ke admin panel → bisa CRUD data
 ```
 
 **✅ Test High Availability**
+
+Stop container di salah satu EC2:
+
 ```bash
-# Stop container di salah satu EC2
 sudo docker stop guestbook-app
+```
 
-# Akses ALB → masih jalan (traffic ke EC2 lain)
+> Akses ALB → masih jalan (traffic ke EC2 lain)
 
-# Hidupkan kembali
+Hidupkan kembali:
+
+```bash
 sudo docker start guestbook-app
 ```
 
-**testing apakah database tersimpan atau tidak di rds**
+**Testing apakah database tersimpan di RDS:**
+
 ```sql
 USE grand_andhika_hotel;
+```
+
+```sql
 SELECT * FROM guests ORDER BY created_at DESC LIMIT 5;
 ```
 
@@ -1248,38 +1312,62 @@ mysql -h hotel-primary.ctuiwuks6p5s.ap-southeast-1.rds.amazonaws.com \
 
 ### ❌ Password admin bermasalah
 
-Connect ke MySQL, jalankan:
+Connect ke MySQL:
+
 ```bash
 mysql -h hotel-primary.xxxxxx.ap-southeast-1.rds.amazonaws.com -u admin -p
 ```
 
 ```sql
 USE grand_andhika_hotel;
+```
 
+```sql
 -- Hapus user admin lama
 DELETE FROM admin_users WHERE username = 'admin';
+```
 
+```sql
 -- Generate hash baru dulu di terminal EC2:
 -- php -r "echo password_hash('admin123', PASSWORD_DEFAULT);"
+```
 
+```sql
 -- Masukkan user baru dengan hash valid
-INSERT INTO admin_users (username, password) VALUES
-('admin', '<HASH_DARI_LANGKAH_DI_ATAS>');
+INSERT INTO admin_users (username, password) VALUES ('admin', '<HASH_DARI_LANGKAH_DI_ATAS>');
+```
 
+```sql
 SELECT * FROM admin_users;
+```
+
+```sql
 EXIT;
 ```
 
 ### ❌ Container tidak mau start
 
-```bash
-# Cek log
-sudo docker logs guestbook-app
+Cek log:
 
-# Rebuild dari awal
+```bash
+sudo docker logs guestbook-app
+```
+
+Rebuild dari awal:
+
+```bash
 sudo docker stop guestbook-app && sudo docker rm guestbook-app
+```
+
+```bash
 sudo docker rmi hotel-guestbook
+```
+
+```bash
 sudo docker build -t hotel-guestbook .
+```
+
+```bash
 sudo docker run -d --name guestbook-app --restart unless-stopped -p 80:80 hotel-guestbook
 ```
 
@@ -1287,8 +1375,9 @@ sudo docker run -d --name guestbook-app --restart unless-stopped -p 80:80 hotel-
 
 ```bash
 curl http://localhost/health.php
-# Harus return: {"status":"healthy",...}
 ```
+
+> Harus return: `{"status":"healthy",...}`
 
 ---
 
