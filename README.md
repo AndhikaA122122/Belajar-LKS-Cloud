@@ -908,6 +908,33 @@ Internet
 |---|---|
 | MySQL/Aurora (3306) | `hotel-web-sg` |
 
+Langkah 1: Buat Security Group untuk ALB
+Di konsol EC2, pada panel kiri pilih Security Groups di bawah menu Network & Security.
+Klik Create security group.
+Isi detail:
+Security group name: Contoh hotel-alb-sg
+Description: Contoh Security group for ALB
+VPC: Pilih VPC yang sama, yaitu hotel-vpc
+Di bagian Inbound rules, klik Add rule dan isi:
+Type: HTTP
+Source: 0.0.0.0/0 (Ini untuk mengizinkan akses HTTP dari internet ke ALB)
+Klik Create security group.
+🔗 Langkah 2: Pasangkan Security Group ke ALB
+Di konsol EC2, pada panel kiri pilih Load Balancers.
+Pilih ALB kamu (hotel-alb), lalu buka tab Security.
+Klik Edit.
+Hapus centang pada security group lama (jika ada), lalu centang security group baru yang sudah dibuat (hotel-alb-sg).
+Klik Save changes.
+✏️ Langkah 3: Ubah Inbound Rule di Security Group EC2
+Kembali ke halaman Security Groups.
+Pilih security group untuk EC2 (hotel-web-sg).
+Buka tab Inbound rules, lalu klik Edit inbound rules.
+Cari aturan dengan tipe HTTP, lalu klik Delete untuk menghapus aturan dengan sumber 0.0.0.0/0.
+Klik Add rule untuk membuat aturan baru:
+Type: HTTP
+Source: Ketik hotel-alb-sg dan pilih security group ALB yang muncul.
+Klik Save rules.
+
 ---
 
 ## Langkah 3: Setup RDS MySQL (Primary + Read Replica)
